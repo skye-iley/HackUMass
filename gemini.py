@@ -141,7 +141,8 @@ async def call_gemini_api(analysis, location, api_key):
     client = genai.Client(api_key=api_key)
     #old code
     #genai.configure(api_key=api_key)
-
+    
+    ## Change system prompt to output speakable text
     system_prompt = """You are an expert life-balance and wellness coach. Your goal is to help a user manage stress and find a healthy work-life balance.
 You will receive a JSON analysis of their calendar (past, present, and future) and their location.
 Your task is to generate a helpful, empathetic, and actionable plan for their day.
