@@ -6,6 +6,7 @@ API_KEY = os.getenv("ELEVEN_LABS_KEY")
 
 def text_to_speech_save_file(text, filename="output.mp3"):
     client = ElevenLabs(api_key=API_KEY)
+    #print(text)
     audio = client.text_to_speech.convert(
         text=text,
         voice_id="Xb7hH8MSUJpSbSDYk0k2",
@@ -17,13 +18,13 @@ def text_to_speech_save_file(text, filename="output.mp3"):
     with open(filename, "wb") as f:
         f.write(audio_bytes)
     print(f"Audio saved to {filename}")
+if __name__ == "__main__":
+    # Example usage:
+    text_to_speech_save_file("Hello, this is a test of ElevenLabs text-to-speech API.")
 
-# Example usage:
-text_to_speech_save_file("Hello, this is a test of ElevenLabs text-to-speech API.")
+    from elevenlabs import ElevenLabs
 
-from elevenlabs import ElevenLabs
-
-client = ElevenLabs(api_key=API_KEY)
-voices = client.voices.get_all()
-for voice in voices.voices:
-    print(f"{voice.name}: {voice.voice_id}")
+    client = ElevenLabs(api_key=API_KEY)
+    voices = client.voices.get_all()
+    for voice in voices.voices:
+        print(f"{voice.name}: {voice.voice_id}")

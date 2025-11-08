@@ -3,6 +3,7 @@
 import os
 import asyncio
 import datetime
+import time
 from fetch_calendar import auth_fetch
 from gemini import analyze_calendar_data, call_gemini_api
 from dotenv import load_dotenv
@@ -12,6 +13,11 @@ load_dotenv()
 
 LOCATION = "Amherst, Massachusetts"
 TIMEZONE = datetime.timezone(-datetime.timedelta(hours=5))
+
+def wait_till_time(target):
+    while datetime.datetime.now(tz=TIMEZONE)<target:
+        print(".")
+        time.sleep(1)
 
 def get_gemini_recommendations():
     """
@@ -69,5 +75,7 @@ def get_gemini_recommendations():
 
 
 if __name__ == "__main__":
+    target_time = datetime.datetime.now(tz=TIMEZONE)+datetime.timedelta(seconds=30)
+    wait_till_time(target_time)
     text = get_gemini_recommendations()
     text_to_speech_save_file(text)
