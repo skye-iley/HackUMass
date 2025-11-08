@@ -146,36 +146,39 @@ async def call_gemini_api(analysis, location, api_key):
     system_prompt = """You are an expert life-balance and wellness coach. Your goal is to help a user manage stress and find a healthy work-life balance.
 You will receive a JSON analysis of their calendar (past, present, and future) and their location.
 Your task is to generate a helpful, empathetic, and actionable plan for their day.
+You are speaking out loud, and thus cannot output in a markdown format.
 
-**Your response MUST strictly follow this Markdown structure:**
+Your response MUST strictly follow this structure:
 
-### 1. Greeting & Today's Brief
+1. Greeting & Today's Brief
 A warm, empathetic welcome (e.g., "Good morning. It looks like today...").
 A 1-2 sentence summary of their day's appointments.
 
-### 2. Your Weekly Vibe
+2. Your Weekly Vibe
 An empathetic assessment of their recent and upcoming week based on the busyness scores. (e.g., "It looks like you've been in back-to-back meetings and the week ahead is also packed. That's a lot to handle. Let's make sure you get time to breathe today.").
 
-### 3. Today's Rejuvenation Plan
-Based on their free time *and location*, suggest 1-2 *specific* local activities.
-**You MUST use your Google Search tool** to find real, low-stress activities (e.g., "a quiet walk at [Local Park]" or "a relaxing coffee at [Local Cafe]").
-**You MUST include the name of the place and why it's a good low-stress choice.**
-These suggestions *must* fit into their "Today's Free Slots".
+3. Today's Rejuvenation Plan
+Based on their free time and location, suggest 1-2 specific local activities.
+You MUST use your Google Search tool to find real, low-stress activities (e.g., "a quiet walk at [Local Park]" or "a relaxing coffee at [Local Cafe]").
+You MUST include the name of the place and why it's a good low-stress choice.
+These suggestions must fit into their "Today's Free Slots".
 
-### 4. Today's Ideal Schedule
+4. Today's Ideal Schedule
 An hourly or block-based breakdown for their day (e.g., 9:00 AM - 5:00 PM).
-**You MUST integrate their existing appointments.**
-**You MUST** proactively schedule short breaks (e.g., "Pomodoro break," "short walk," "mindful lunch") in their free slots.
-This should be a bulleted or numbered list.
+You MUST integrate their existing appointments.
+You MUST proactively schedule short breaks (e.g., "Pomodoro break," "short walk," "mindful lunch") in their free slots.
 
-**Tone:** Empathetic, encouraging, and professional.
+ALL outputs must be in plain text, with no emojis, images, or fancy formatting. It should sound as though it is being spoken aloud.
+Please do not output any markdown.
+
+Tone: Empathetic, encouraging, and professional.
 """
 
     user_prompt = f"""Here is my calendar analysis. Please generate my plan.
 
-**Location:** {location}
+Location: {location}
 
-**Analysis:**
+Analysis:
 ```json
 {json.dumps(analysis, indent=2)}
 ```
@@ -183,14 +186,18 @@ This should be a bulleted or numbered list.
 
     # Set up the model
 
-    ##old code 
+ 
+    """
     response = client.models.generate_content(
         model='gemini-2.5-flash-preview-09-2025',
         contents=system_prompt,
         config=genai.types.GenerateContentConfig(
+            system_instruction=system_prompt
             tools=[genai.types.Tool(google_search=genai.types.GoogleSearch())],
         ),
     )
+    """
+    ##old code 
     """
     model = genai.GenerativeModel(
         model_name="gemini-2.5-flash-preview-09-2025",
@@ -204,7 +211,11 @@ This should be a bulleted or numbered list.
 
         response = await client.aio.models.generate_content(
             model='gemini-2.5-flash-preview-09-2025',
-            contents=[user_prompt]
+            contents=[user_prompt],
+            config=genai.types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                tools=[genai.types.Tool(google_search=genai.types.GoogleSearch())],
+            ),
         )
         ## old code
         #response = await model.generate_content_async([user_prompt])

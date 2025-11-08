@@ -6,6 +6,7 @@ import datetime
 from fetch_calendar import auth_fetch
 from gemini import analyze_calendar_data, call_gemini_api
 from dotenv import load_dotenv
+from speech import text_to_speech_save_file
 
 load_dotenv()
 
@@ -46,9 +47,9 @@ def get_gemini_recommendations():
         return
 
     # 3. Render the output
-    print("\n" + "="*50)
+    #print("\n" + "="*50)
     print("   Your Personalized Plan")
-    print("="*50 + "\n")
+    #print("="*50 + "\n")
     print(text)
 
     if sources:
@@ -63,7 +64,10 @@ def get_gemini_recommendations():
     
     print("\n" + "="*50)
 
+    return text
+
 
 
 if __name__ == "__main__":
-    get_gemini_recommendations()
+    text = get_gemini_recommendations()
+    text_to_speech_save_file(text)
