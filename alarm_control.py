@@ -87,8 +87,9 @@ def play_mp3(file_path):
     
 
 if __name__ == "__main__":
-    #target_time = datetime.datetime.now(tz=TIMEZONE)+datetime.timedelta(seconds=5)
-    #wait_till_time(target_time)
-    #text = get_gemini_recommendations()
-    #text_to_speech_save_file(text)
+    target_time = datetime.datetime.now(tz=TIMEZONE)+datetime.timedelta(seconds=30)
+    text = get_gemini_recommendations()
+    text_to_speech_save_file(text)
+    wait_till_time(target_time)
+    ## takes about 5 seconds to run
     play_mp3('output.mp3')
