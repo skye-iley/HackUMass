@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balance Alarm - Smart Schedule Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --md-primary: #6200EA;
+            --md-primary-dark: #4A00B8;
+            --md-primary-light: #7C3AED;
+            --md-secondary: #03DAC6;
+            --md-secondary-dark: #018786;
+            --md-surface: #FFFFFF;
+            --md-background: #F5F5F5;
+            --md-error: #B00020;
+            --md-on-primary: #FFFFFF;
+            --md-on-secondary: #000000;
+            --md-on-surface: #000000;
+            --md-on-background: #000000;
+            --md-text-primary: rgba(0, 0, 0, 0.87);
+            --md-text-secondary: rgba(0, 0, 0, 0.60);
+            --md-divider: rgba(0, 0, 0, 0.12);
+            --md-success: #4CAF50;
+            --md-warning: #FF9800;
+            --md-danger: #F44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--md-background);
+            color: var(--md-text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-bar {
+            background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+            color: var(--md-on-primary);
+            padding: 16px 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .app-bar h1 {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 0.15px;
+        }
+
+        .app-bar .material-icons {
+            font-size: 24px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 48px 24px;
+            background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-light) 100%);
+            color: var(--md-on-primary);
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 12px rgba(98, 0, 234, 0.3);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .current-time {
+            font-size: 72px;
+            font-weight: 300;
+            letter-spacing: -2px;
+            margin-bottom: 8px;
+        }
+
+        .current-date {
+            font-size: 24px;
+            font-weight: 400;
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        .greeting {
+            font-size: 32px;
+            font-weight: 500;
+            margin-top: 16px;
+        }
+
+        .card {
+            background: var(--md-surface);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--md-primary);
+        }
+
+        .card-title .material-icons {
+            font-size: 24px;
+        }
+
+        .stress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .stress-card {
+            background: var(--md-surface);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stress-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .progress-circle {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 24px auto;
+        }
+
+        .progress-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-circle-bg {
+            fill: none;
+            stroke: var(--md-divider);
+            stroke-width: 12;
+        }
+
+        .progress-circle-fill {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease-out;
+        }
+
+        .progress-circle-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .progress-value {
+            font-size: 48px;
+            font-weight: 700;
+        }
+
+        .progress-label {
+            font-size: 14px;
+            color: var(--md-text-secondary);
+            margin-top: -8px;
+        }
+
+        .stress-details {
+            margin-top: 16px;
+        }
+
+        .stress-detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--md-divider);
+        }
+
+        .stress-detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-insight {
+            background: linear-gradient(135deg, rgba(98, 0, 234, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+            border-left: 4px solid var(--md-primary);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .comparison-insight .material-icons {
+            color: var(--md-primary);
+            font-size: 32px;
+        }
+
+        .comparison-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 24px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .timeline-time {
+            min-width: 100px;
+            font-weight: 500;
+            color: var(--md-text-secondary);
+        }
+
+        .timeline-content {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(98, 0, 234, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid var(--md-primary);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            background: linear-gradient(135deg, rgba(98, 0, 234, 0.12) 0%, rgba(124, 58, 237, 0.12) 100%);
+            transform: translateX(4px);
+        }
+
+        .timeline-content.appointment {
+            border-left-color: var(--md-primary);
+        }
+
+        .timeline-content.break {
+            border-left-color: var(--md-success);
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.08) 100%);
+        }
+
+        .timeline-content.work {
+            border-left-color: var(--md-secondary);
+            background: linear-gradient(135deg, rgba(3, 218, 198, 0.08) 0%, rgba(3, 218, 198, 0.08) 100%);
+        }
+
+        .timeline-content.wellness {
+            border-left-color: var(--md-warning);
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.08) 0%, rgba(255, 152, 0, 0.08) 100%);
+        }
+
+        .timeline-title {
+            font-weight: 500;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .timeline-duration {
+            font-size: 14px;
+            color: var(--md-text-secondary);
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .type-badge.appointment {
+            background: rgba(98, 0, 234, 0.12);
+            color: var(--md-primary);
+        }
+
+        .type-badge.break {
+            background: rgba(76, 175, 80, 0.12);
+            color: var(--md-success);
+        }
+
+        .type-badge.work {
+            background: rgba(3, 218, 198, 0.12);
+            color: var(--md-secondary-dark);
+        }
+
+        .type-badge.wellness {
+            background: rgba(255, 152, 0, 0.12);
+            color: var(--md-warning);
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--md-secondary) 0%, var(--md-secondary-dark) 100%);
+            color: var(--md-on-secondary);
+            border: none;
+            box-shadow: 0 4px 12px rgba(3, 218, 198, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            animation: pulse 2s infinite;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(3, 218, 198, 0.5);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        .fab .material-icons {
+            font-size: 32px;
+        }
+
+        .audio-player {
+            background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+            color: var(--md-on-primary);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(98, 0, 234, 0.3);
+        }
+
+        .play-fab {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--md-primary);
+            border: none;
+            color: var(--md-on-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(98, 0, 234, 0.4);
+        }
+
+        .play-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(98, 0, 234, 0.5);
+        }
+
+        .play-fab:active {
+            transform: scale(0.95);
+        }
+
+        .play-fab:focus-visible {
+            outline: 3px solid rgba(255, 255, 255, 0.8);
+            outline-offset: 2px;
+        }
+
+        .play-fab .material-icons {
+            font-size: 40px;
+        }
+
+        .alarm-play-fab {
+            background: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .alarm-play-fab:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 24px;
+        }
+
+        .insights-list {
+            list-style: none;
+        }
+
+        .insight-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, rgba(98, 0, 234, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+        }
+
+        .insight-item .material-icons {
+            color: var(--md-primary);
+            font-size: 20px;
+        }
+
+        .recommendation-card {
+            background: linear-gradient(135deg, rgba(3, 218, 198, 0.08) 0%, rgba(1, 135, 134, 0.08) 100%);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--md-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .recommendation-card:hover {
+            background: linear-gradient(135deg, rgba(3, 218, 198, 0.12) 0%, rgba(1, 135, 134, 0.12) 100%);
+            transform: translateX(4px);
+        }
+
+        .recommendation-title {
+            font-weight: 500;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .recommendation-details {
+            font-size: 14px;
+            color: var(--md-text-secondary);
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .recommendation-detail {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .recommendation-detail .material-icons {
+            font-size: 16px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 4px 12px rgba(3, 218, 198, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(3, 218, 198, 0.6);
+            }
+        }
+
+
+
+        @media (max-width: 768px) {
+            .current-time {
+                font-size: 48px;
+            }
+
+            .current-date {
+                font-size: 18px;
+            }
+
+            .greeting {
+                font-size: 24px;
+            }
+
+            .stress-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .hero-section {
+                padding: 32px 16px;
+            }
+
+            .fab {
+                bottom: 16px;
+                right: 16px;
+                width: 56px;
+                height: 56px;
+            }
+
+            .fab .material-icons {
+                font-size: 28px;
+            }
+
+            .timeline-time {
+                min-width: 80px;
+                font-size: 14px;
+            }
+        }
+
+        .status-green {
+            color: var(--md-success);
+        }
+
+        .status-yellow {
+            color: var(--md-warning);
+        }
+
+        .status-red {
+            color: var(--md-danger);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--md-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alarm-fab-header {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--md-on-primary);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-left: 16px;
+        }
+
+        .alarm-fab-header:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .alarm-fab-header:focus-visible {
+            outline: 2px solid var(--md-on-primary);
+            outline-offset: 2px;
+        }
+
+        .alarm-fab-header .material-icons {
+            font-size: 24px;
+        }
+
+        .next-alarm-display {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: var(--md-on-primary);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--md-surface);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            color: var(--md-primary);
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .modal-header .material-icons {
+            font-size: 32px;
+        }
+
+        .time-picker-container {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            margin: 32px 0;
+        }
+
+        .time-input {
+            width: 80px;
+            font-size: 48px;
+            font-weight: 300;
+            text-align: center;
+            border: 2px solid var(--md-divider);
+            border-radius: 8px;
+            padding: 16px 8px;
+            background: var(--md-background);
+            color: var(--md-text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .time-input:focus {
+            outline: none;
+            border-color: var(--md-primary);
+            background: var(--md-surface);
+        }
+
+        .time-separator {
+            font-size: 48px;
+            font-weight: 300;
+            color: var(--md-text-secondary);
+        }
+
+        .period-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .period-button {
+            padding: 12px 20px;
+            border: 2px solid var(--md-divider);
+            border-radius: 8px;
+            background: var(--md-background);
+            color: var(--md-text-primary);
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .period-button:hover {
+            border-color: var(--md-primary);
+            background: var(--md-surface);
+        }
+
+        .period-button.active {
+            border-color: var(--md-primary);
+            background: var(--md-primary);
+            color: var(--md-on-primary);
+        }
+
+        .period-button:focus-visible {
+            outline: 2px solid var(--md-primary);
+            outline-offset: 2px;
+        }
+
+        .repeat-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--md-background);
+            border-radius: 8px;
+            margin: 24px 0;
+        }
+
+        .repeat-option label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--md-divider);
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--md-primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        input:focus-visible + .slider {
+            outline: 2px solid var(--md-primary);
+            outline-offset: 2px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 32px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--md-primary);
+            color: var(--md-on-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--md-primary-dark);
+            box-shadow: 0 4px 8px rgba(98, 0, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--md-primary);
+            border: 2px solid var(--md-divider);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(98, 0, 234, 0.05);
+            border-color: var(--md-primary);
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid var(--md-primary);
+            outline-offset: 2px;
+        }
+
+        .alarm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #FF5252 0%, #FF9100 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .alarm-overlay.ringing {
+            animation: pulseBackground 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseBackground {
+            0%, 100% {
+                background: linear-gradient(135deg, #FF5252 0%, #FF9100 100%);
+            }
+            50% {
+                background: linear-gradient(135deg, #FF6B6B 0%, #FFA726 100%);
+            }
+        }
+
+        .alarm-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .alarm-content {
+            max-width: 800px;
+            width: 100%;
+            color: var(--md-on-primary);
+            text-align: center;
+        }
+
+        .alarm-content.ringing {
+            animation: pulseScale 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseScale {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.03);
+            }
+        }
+
+        .alarm-icon-animated {
+            font-size: 120px;
+            animation: ringBell 0.8s ease-in-out infinite;
+            margin-bottom: 24px;
+            color: #FFFFFF;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes ringBell {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            10%, 30% { transform: rotate(-20deg) scale(1.1); }
+            20%, 40% { transform: rotate(20deg) scale(1.1); }
+            50% { transform: rotate(0deg) scale(1); }
+        }
+
+        .alarm-greeting {
+            font-size: 48px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .alarm-subtext {
+            font-size: 24px;
+            opacity: 0.9;
+            margin-bottom: 48px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .alarm-audio-player {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            backdrop-filter: blur(10px);
+        }
+
+        .alarm-schedule-preview {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            text-align: left;
+            backdrop-filter: blur(10px);
+        }
+
+        .alarm-schedule-preview h3 {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alarm-schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .alarm-schedule-item:last-child {
+            border-bottom: none;
+        }
+
+        .alarm-schedule-time {
+            font-weight: 500;
+            min-width: 80px;
+        }
+
+        .alarm-recommendations {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            text-align: left;
+            backdrop-filter: blur(10px);
+        }
+
+        .alarm-recommendations h3 {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alarm-recommendation-item {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            padding: 8px 0;
+        }
+
+        .alarm-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .alarm-btn {
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 150px;
+            justify-content: center;
+        }
+
+        .alarm-btn-acknowledge {
+            background: #FFFFFF;
+            color: #FF5252;
+            font-size: 20px;
+            padding: 20px 48px;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            animation: pulseButton 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseButton {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            }
+            50% {
+                transform: scale(1.08);
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        .alarm-btn-acknowledge:hover {
+            background: #F5F5F5;
+            animation: pulseButton 0.8s ease-in-out infinite;
+        }
+
+        .alarm-btn-dismiss {
+            background: var(--md-secondary);
+            color: var(--md-on-secondary);
+        }
+
+        .alarm-btn-dismiss:hover {
+            background: var(--md-secondary-dark);
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(3, 218, 198, 0.4);
+        }
+
+        .alarm-btn-snooze {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--md-on-primary);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .alarm-btn-snooze:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .alarm-btn:focus-visible {
+            outline: 3px solid rgba(255, 255, 255, 0.8);
+            outline-offset: 2px;
+        }
+
+        .snooze-options {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .snooze-option-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--md-on-primary);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .snooze-option-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+        .snooze-option-btn:focus-visible {
+            outline: 2px solid rgba(255, 255, 255, 0.8);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .alarm-greeting {
+                font-size: 32px;
+            }
+
+            .alarm-subtext {
+                font-size: 18px;
+            }
+
+            .alarm-icon-animated {
+                font-size: 80px;
+            }
+
+            .time-input {
+                font-size: 36px;
+                width: 60px;
+            }
+
+            .time-separator {
+                font-size: 36px;
+            }
+
+            .next-alarm-display span {
+                font-size: 12px !important;
+            }
+
+            .app-bar {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-bar">
+        <span class="material-icons">alarm</span>
+        <h1>Balance Alarm</h1>
+        <div style="flex: 1;"></div>
+        <div class="next-alarm-display" id="nextAlarmDisplay" style="display: none;">
+            <span class="material-icons" style="font-size: 18px;">alarm</span>
+            <span id="nextAlarmText" style="font-size: 14px; margin-left: 4px;"></span>
+        </div>
+        <button class="alarm-fab-header" id="setAlarmButton" title="Set Alarm" aria-label="Set daily alarm">
+            <span class="material-icons">alarm_add</span>
+        </button>
+    </div>
+
+    <div class="hero-section">
+        <div class="current-time" id="currentTime">--:--:--</div>
+        <div class="current-date" id="currentDate">Loading...</div>
+        <div class="greeting" id="greeting">Good Day!</div>
+    </div>
+
+    <div class="container">
+        <!-- Audio Player Card -->
+        <div class="audio-player">
+            <div class="card-title" style="color: white; text-align: center;">
+                <span class="material-icons">headphones</span>
+                Morning Briefing
+            </div>
+            <div style="display: flex; justify-content: center; align-items: center; padding: 24px 0;">
+                <button class="play-fab" id="playButton" aria-label="Play morning briefing audio">
+                    <span class="material-icons">play_arrow</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stress Analysis Grid -->
+        <div class="stress-grid">
+            <div class="stress-card" style="animation-delay: 0.1s;">
+                <div class="card-title">
+                    <span class="material-icons">history</span>
+                    Past Week Analysis
+                </div>
+                <div class="progress-circle">
+                    <svg width="180" height="180">
+                        <circle class="progress-circle-bg" cx="90" cy="90" r="80"></circle>
+                        <circle class="progress-circle-fill status-red" cx="90" cy="90" r="80" 
+                                stroke="#F44336" stroke-dasharray="502.65" stroke-dashoffset="12.66"></circle>
+                    </svg>
+                    <div class="progress-circle-text">
+                        <div class="progress-value status-red">97.5%</div>
+                        <div class="progress-label">Busyness</div>
+                    </div>
+                </div>
+                <div class="stress-details">
+                    <div class="stress-detail-item">
+                        <span>Total Hours</span>
+                        <strong>39 hours</strong>
+                    </div>
+                    <div class="stress-detail-item">
+                        <span>Busiest Day</span>
+                        <strong>Thursday</strong>
+                    </div>
+                    <div class="stress-detail-item">
+                        <span>Meetings</span>
+                        <strong>12 events</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stress-card" style="animation-delay: 0.2s;">
+                <div class="card-title">
+                    <span class="material-icons">event</span>
+                    Upcoming Week Forecast
+                </div>
+                <div class="progress-circle">
+                    <svg width="180" height="180">
+                        <circle class="progress-circle-bg" cx="90" cy="90" r="80"></circle>
+                        <circle class="progress-circle-fill status-red" cx="90" cy="90" r="80" 
+                                stroke="#F44336" stroke-dasharray="502.65" stroke-dashoffset="0"></circle>
+                    </svg>
+                    <div class="progress-circle-text">
+                        <div class="progress-value status-red">105%</div>
+                        <div class="progress-label">Busyness</div>
+                    </div>
+                </div>
+                <div class="stress-details">
+                    <div class="stress-detail-item">
+                        <span>Projected Hours</span>
+                        <strong>42 hours</strong>
+                    </div>
+                    <div class="stress-detail-item">
+                        <span>High-Stress Day</span>
+                        <strong>Wednesday</strong>
+                    </div>
+                    <div class="stress-detail-item">
+                        <span>Upcoming Events</span>
+                        <strong>9 events</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-insight">
+            <span class="material-icons">trending_up</span>
+            <div>
+                <div class="comparison-text">Your upcoming week is 8% busier than last week</div>
+                <div style="font-size: 14px; color: var(--md-text-secondary); margin-top: 4px;">Consider scheduling buffer time between meetings and prioritizing self-care</div>
+            </div>
+        </div>
+
+        <!-- Weekly Comparison Chart -->
+        <div class="card" style="animation-delay: 0.3s;">
+            <div class="card-title">
+                <span class="material-icons">bar_chart</span>
+                Weekly Workload Comparison
+            </div>
+            <div class="chart-container">
+                <canvas id="weeklyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Today's Schedule -->
+        <div class="card" style="animation-delay: 0.4s;">
+            <div class="card-title">
+                <span class="material-icons">today</span>
+                Today's Schedule
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-time">9:00 AM</div>
+                    <div class="timeline-content appointment">
+                        <div class="timeline-title">Morning Stand-up</div>
+                        <div class="timeline-duration">30 minutes</div>
+                        <span class="type-badge appointment">Appointment</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">11:00 AM</div>
+                    <div class="timeline-content appointment">
+                        <div class="timeline-title">Dentist Appointment</div>
+                        <div class="timeline-duration">60 minutes</div>
+                        <span class="type-badge appointment">Personal</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">3:00 PM</div>
+                    <div class="timeline-content appointment">
+                        <div class="timeline-title">Project Phoenix - Final Review</div>
+                        <div class="timeline-duration">90 minutes</div>
+                        <span class="type-badge appointment">Meeting</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommended Schedule -->
+        <div class="card" style="animation-delay: 0.5s;">
+            <div class="card-title">
+                <span class="material-icons">auto_awesome</span>
+                AI-Recommended Balanced Schedule
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-time">9:00 AM</div>
+                    <div class="timeline-content appointment">
+                        <div class="timeline-title">Morning Stand-up</div>
+                        <span class="type-badge appointment">Appointment</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">9:30 AM</div>
+                    <div class="timeline-content break">
+                        <div class="timeline-title">Coffee &amp; Email Review</div>
+                        <span class="type-badge break">Break</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">10:00 AM</div>
+                    <div class="timeline-content work">
+                        <div class="timeline-title">Focus Work</div>
+                        <span class="type-badge work">Deep Work</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">11:00 AM</div>
+                    <div class="timeline-content appointment">
+                        <div class="timeline-title">Dentist Appointment</div>
+                        <span class="type-badge appointment">Personal</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">12:00 PM</div>
+                    <div class="timeline-content break">
+                        <div class="timeline-title">Mindful Lunch Break</div>
+                        <span class="type-badge break">Wellness</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">1:00 PM</div>
+                    <div class="timeline-content work">
+                        <div class="timeline-title">Deep Work Session</div>
+                        <span class="type-badge work">Focus</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">2:00 PM</div>
+                    <div class="timeline-content wellness">
+                        <div class="timeline-title">15-min Walk at Emily Dickinson Museum Gardens</div>
+                        <span class="type-badge wellness">Wellness</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">2:30 PM</div>
+                    <div class="timeline-content work">
+                        <div class="timeline-title">Project Phoenix Prep</div>
+                        <span class="type-badge work">Preparation</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">3:00 PM</div>
+                    <div class="timeline-content appointment">
+                        <div class="timeline-title">Project Phoenix - Final Review</div>
+                        <span class="type-badge appointment">Meeting</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">4:30 PM</div>
+                    <div class="timeline-content work">
+                        <div class="timeline-title">Wrap-up &amp; Tomorrow's Planning</div>
+                        <span class="type-badge work">Planning</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="card" style="animation-delay: 0.6s;">
+            <div class="card-title">
+                <span class="material-icons">lightbulb</span>
+                Stress Insights &amp; Tips
+            </div>
+            <ul class="insights-list">
+                <li class="insight-item">
+                    <span class="material-icons">info</span>
+                    <span>You've had an intense week with back-to-back meetings</span>
+                </li>
+                <li class="insight-item">
+                    <span class="material-icons">warning</span>
+                    <span>Next week looks even busier - prioritize self-care</span>
+                </li>
+                <li class="insight-item">
+                    <span class="material-icons">schedule</span>
+                    <span>Consider scheduling buffer time between meetings</span>
+                </li>
+                <li class="insight-item">
+                    <span class="material-icons">restaurant</span>
+                    <span>Your free lunch slot today is perfect for a mindful break</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Location Recommendations -->
+        <div class="card" style="animation-delay: 0.7s;">
+            <div class="card-title">
+                <span class="material-icons">place</span>
+                Local Stress Relief Recommendations
+            </div>
+            <div class="recommendation-card">
+                <div class="recommendation-title">Emily Dickinson Museum Gardens</div>
+                <div class="recommendation-details">
+                    <div class="recommendation-detail">
+                        <span class="material-icons">directions_walk</span>
+                        <span>Quiet walk</span>
+                    </div>
+                    <div class="recommendation-detail">
+                        <span class="material-icons">schedule</span>
+                        <span>15 minutes</span>
+                    </div>
+                    <div class="recommendation-detail status-green">
+                        <span class="material-icons">favorite</span>
+                        <span>High stress relief</span>
+                    </div>
+                </div>
+            </div>
+            <div class="recommendation-card">
+                <div class="recommendation-title">Amherst Coffee</div>
+                <div class="recommendation-details">
+                    <div class="recommendation-detail">
+                        <span class="material-icons">local_cafe</span>
+                        <span>Relaxing coffee break</span>
+                    </div>
+                    <div class="recommendation-detail">
+                        <span class="material-icons">schedule</span>
+                        <span>20 minutes</span>
+                    </div>
+                    <div class="recommendation-detail status-yellow">
+                        <span class="material-icons">favorite</span>
+                        <span>Medium stress relief</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="fab" id="fabPlay" title="Play Daily Briefing">
+        <span class="material-icons">play_arrow</span>
+    </button>
+
+    <!-- Alarm Settings Modal -->
+    <div class="modal-overlay" id="alarmModal" role="dialog" aria-labelledby="alarmModalTitle" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="material-icons">alarm_add</span>
+                <h2 id="alarmModalTitle">Set Daily Alarm</h2>
+            </div>
+            
+            <div class="time-picker-container">
+                <input type="number" class="time-input" id="hourInput" min="1" max="12" value="7" aria-label="Hour" />
+                <span class="time-separator">:</span>
+                <input type="number" class="time-input" id="minuteInput" min="0" max="59" value="00" aria-label="Minute" />
+                <div class="period-selector">
+                    <button class="period-button active" id="amButton" aria-pressed="true">AM</button>
+                    <button class="period-button" id="pmButton" aria-pressed="false">PM</button>
+                </div>
+            </div>
+
+            <div class="repeat-option">
+                <label for="repeatDaily">
+                    <span class="material-icons">repeat</span>
+                    Repeat Daily
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="repeatDaily" checked aria-label="Repeat alarm daily" />
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelAlarmButton">
+                    <span class="material-icons">close</span>
+                    Cancel
+                </button>
+                <button class="btn btn-primary" id="saveAlarmButton">
+                    <span class="material-icons">check</span>
+                    Save Alarm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alarm Ring Overlay -->
+    <div class="alarm-overlay" id="alarmOverlay" role="alertdialog" aria-labelledby="alarmGreetingText" aria-modal="true">
+        <div class="alarm-content" id="alarmContent">
+            <div class="material-icons alarm-icon-animated" id="alarmIcon">alarm</div>
+            <h1 class="alarm-greeting" id="alarmGreetingText">Wake Up!</h1>
+            <p class="alarm-subtext" id="alarmSubtext">Tap the button below to acknowledge your alarm.</p>
+
+            <div class="alarm-audio-player">
+                <div class="card-title" style="color: white; margin-bottom: 16px; text-align: center;">
+                    <span class="material-icons">headphones</span>
+                    Daily Briefing Audio
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; padding: 16px 0;">
+                    <button class="play-fab alarm-play-fab" id="alarmAudioPlay" aria-label="Play daily briefing audio">
+                        <span class="material-icons">play_arrow</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="alarm-schedule-preview">
+                <h3>
+                    <span class="material-icons">today</span>
+                    Today's Schedule
+                </h3>
+                <div class="alarm-schedule-item">
+                    <span class="alarm-schedule-time">9:00 AM</span>
+                    <span class="material-icons">event</span>
+                    <span>Morning Stand-up</span>
+                </div>
+                <div class="alarm-schedule-item">
+                    <span class="alarm-schedule-time">11:00 AM</span>
+                    <span class="material-icons">event</span>
+                    <span>Dentist Appointment</span>
+                </div>
+                <div class="alarm-schedule-item">
+                    <span class="alarm-schedule-time">3:00 PM</span>
+                    <span class="material-icons">event</span>
+                    <span>Project Phoenix - Final Review</span>
+                </div>
+            </div>
+
+            <div class="alarm-recommendations">
+                <h3>
+                    <span class="material-icons">tips_and_updates</span>
+                    Today's Recommendations
+                </h3>
+                <div class="alarm-recommendation-item">
+                    <span class="material-icons">restaurant</span>
+                    <span>Take a mindful lunch break at noon.</span>
+                </div>
+                <div class="alarm-recommendation-item">
+                    <span class="material-icons">directions_walk</span>
+                    <span>Consider a 15-min walk mid-afternoon.</span>
+                </div>
+                <div class="alarm-recommendation-item">
+                    <span class="material-icons">schedule</span>
+                    <span>Schedule buffer time between meetings.</span>
+                </div>
+                <div class="alarm-recommendation-item">
+                    <span class="material-icons">work</span>
+                    <span>Your afternoon is wide open for focused work.</span>
+                </div>
+            </div>
+
+            <div class="alarm-actions" id="alarmActions">
+                <button class="alarm-btn alarm-btn-acknowledge" id="acknowledgeAlarmButton">
+                    <span class="material-icons">notifications_off</span>
+                    Acknowledge Alarm
+                </button>
+            </div>
+
+            <div class="alarm-actions" id="dismissSnoozeActions" style="display: none;">
+                <button class="alarm-btn alarm-btn-dismiss" id="dismissAlarmButton">
+                    <span class="material-icons">check_circle</span>
+                    Dismiss
+                </button>
+                <button class="alarm-btn alarm-btn-snooze" id="snoozeAlarmButton">
+                    <span class="material-icons">snooze</span>
+                    Snooze
+                </button>
+            </div>
+
+            <div class="snooze-options" id="snoozeOptions" style="display: none;">
+                <button class="snooze-option-btn" data-minutes="5">5 minutes</button>
+                <button class="snooze-option-btn" data-minutes="10">10 minutes</button>
+                <button class="snooze-option-btn" data-minutes="30">30 minutes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: true 
+            });
+            const dateString = now.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            document.getElementById('currentTime').textContent = timeString;
+            document.getElementById('currentDate').textContent = dateString;
+            
+            // Update greeting
+            const hour = now.getHours();
+            let greeting = 'Good Evening';
+            if (hour < 12) {
+                greeting = 'Good Morning';
+            } else if (hour < 18) {
+                greeting = 'Good Afternoon';
+            }
+            document.getElementById('greeting').textContent = greeting + '!';
+        }
+        
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Weekly Chart
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        const weeklyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                datasets: [{
+                    label: 'Past Week (hours)',
+                    data: [8, 4, 9.5, 10, 7.5, null, null, null, null, null],
+                    backgroundColor: '#1FB8CD',
+                    borderRadius: 6,
+                    barPercentage: 0.7
+                }, {
+                    label: 'Upcoming Week (hours)',
+                    data: [null, null, null, null, null, 4, 5, 13, 8, 3],
+                    backgroundColor: '#B4413C',
+                    borderRadius: 6,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' hours';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 14,
+                        ticks: {
+                            callback: function(value) {
+                                return value + 'h';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Simplified Audio Player
+        let isPlaying = false;
+        let audioSimulation = null;
+
+        function playAudio() {
+            // Simulate audio playback (3 minutes)
+            console.log('Playing morning briefing audio...');
+            
+            // Stop if already playing
+            if (audioSimulation) {
+                clearTimeout(audioSimulation);
+            }
+            
+            // Reset button after simulated duration (3 minutes = 180 seconds)
+            audioSimulation = setTimeout(() => {
+                console.log('Audio playback complete');
+                audioSimulation = null;
+            }, 180000);
+        }
+
+        // Event listener for play button
+        document.getElementById('playButton').addEventListener('click', () => {
+            playAudio();
+        });
+
+        // FAB play button
+        document.getElementById('fabPlay').addEventListener('click', () => {
+            playAudio();
+        });
+
+        // Add staggered animation delay to cards
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = (0.3 + index * 0.1) + 's';
+        });
+
+        // Add staggered animation to stress cards
+        const stressCards = document.querySelectorAll('.stress-card');
+        stressCards.forEach((card, index) => {
+            card.style.animation = 'slideUp 0.6s ease-out';
+            card.style.animationDelay = (0.1 + index * 0.1) + 's';
+            card.style.animationFillMode = 'both';
+        });
+
+        // Alarm System with State Management
+        let alarmSettings = {
+            enabled: false,
+            hour: 7,
+            minute: 0,
+            period: 'AM',
+            repeat: true
+        };
+        let alarmState = {
+            hasTriggeredToday: false,
+            isRinging: false,
+            lastCheckedDate: new Date().toDateString()
+        };
+        let alarmCheckInterval = null;
+
+        
+        // Alarm Ringtone System
+        let audioContext = null;
+        let ringtoneOscillator = null;
+        let ringtoneGainNode = null;
+        let ringtoneInterval = null;
+        let isRingtoneRinging = false;
+
+        // Modal Controls
+        const alarmModal = document.getElementById('alarmModal');
+        const setAlarmButton = document.getElementById('setAlarmButton');
+        const cancelAlarmButton = document.getElementById('cancelAlarmButton');
+        const saveAlarmButton = document.getElementById('saveAlarmButton');
+        const hourInput = document.getElementById('hourInput');
+        const minuteInput = document.getElementById('minuteInput');
+        const amButton = document.getElementById('amButton');
+        const pmButton = document.getElementById('pmButton');
+        const repeatDaily = document.getElementById('repeatDaily');
+        const nextAlarmDisplay = document.getElementById('nextAlarmDisplay');
+        const nextAlarmText = document.getElementById('nextAlarmText');
+
+        // Alarm Overlay Controls
+        const alarmOverlay = document.getElementById('alarmOverlay');
+        const dismissAlarmButton = document.getElementById('dismissAlarmButton');
+        const snoozeAlarmButton = document.getElementById('snoozeAlarmButton');
+        const snoozeOptions = document.getElementById('snoozeOptions');
+        const alarmAudioPlay = document.getElementById('alarmAudioPlay');
+        const acknowledgeAlarmButton = document.getElementById('acknowledgeAlarmButton');
+        const alarmContent = document.getElementById('alarmContent');
+        const alarmIcon = document.getElementById('alarmIcon');
+        const alarmSubtext = document.getElementById('alarmSubtext');
+        const alarmActions = document.getElementById('alarmActions');
+        const dismissSnoozeActions = document.getElementById('dismissSnoozeActions');
+
+        // Open alarm modal
+        setAlarmButton.addEventListener('click', () => {
+            hourInput.value = alarmSettings.hour;
+            minuteInput.value = String(alarmSettings.minute).padStart(2, '0');
+            repeatDaily.checked = alarmSettings.repeat;
+            
+            if (alarmSettings.period === 'AM') {
+                amButton.classList.add('active');
+                pmButton.classList.remove('active');
+                amButton.setAttribute('aria-pressed', 'true');
+                pmButton.setAttribute('aria-pressed', 'false');
+            } else {
+                pmButton.classList.add('active');
+                amButton.classList.remove('active');
+                pmButton.setAttribute('aria-pressed', 'true');
+                amButton.setAttribute('aria-pressed', 'false');
+            }
+            
+            alarmModal.classList.add('active');
+            hourInput.focus();
+        });
+
+        // Close alarm modal
+        cancelAlarmButton.addEventListener('click', () => {
+            alarmModal.classList.remove('active');
+        });
+
+        // Close modal on outside click
+        alarmModal.addEventListener('click', (e) => {
+            if (e.target === alarmModal) {
+                alarmModal.classList.remove('active');
+            }
+        });
+
+        // Period selection
+        amButton.addEventListener('click', () => {
+            amButton.classList.add('active');
+            pmButton.classList.remove('active');
+            amButton.setAttribute('aria-pressed', 'true');
+            pmButton.setAttribute('aria-pressed', 'false');
+        });
+
+        pmButton.addEventListener('click', () => {
+            pmButton.classList.add('active');
+            amButton.classList.remove('active');
+            pmButton.setAttribute('aria-pressed', 'true');
+            amButton.setAttribute('aria-pressed', 'false');
+        });
+
+        // Format input values
+        hourInput.addEventListener('blur', () => {
+            let val = parseInt(hourInput.value);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > 12) val = 12;
+            hourInput.value = val;
+        });
+
+        minuteInput.addEventListener('blur', () => {
+            let val = parseInt(minuteInput.value);
+            if (isNaN(val) || val < 0) val = 0;
+            if (val > 59) val = 59;
+            minuteInput.value = String(val).padStart(2, '0');
+        });
+
+        // Save alarm
+        saveAlarmButton.addEventListener('click', () => {
+            const hour = parseInt(hourInput.value);
+            const minute = parseInt(minuteInput.value);
+            const period = amButton.classList.contains('active') ? 'AM' : 'PM';
+            const repeat = repeatDaily.checked;
+
+            alarmSettings = {
+                enabled: true,
+                hour: hour,
+                minute: minute,
+                period: period,
+                repeat: repeat
+            };
+
+            scheduleAlarm();
+            updateNextAlarmDisplay();
+            alarmModal.classList.remove('active');
+        });
+
+        // Convert alarm settings to 24-hour format
+        function getAlarmHour24() {
+            let hour24 = alarmSettings.hour;
+            if (alarmSettings.period === 'PM' && hour24 !== 12) {
+                hour24 += 12;
+            } else if (alarmSettings.period === 'AM' && hour24 === 12) {
+                hour24 = 0;
+            }
+            return hour24;
+        }
+
+        // Check if current time matches alarm time
+        function checkAlarmTime() {
+            if (!alarmSettings.enabled) return;
+            
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const currentDate = now.toDateString();
+            
+            // Reset trigger flag at midnight (new day)
+            if (currentDate !== alarmState.lastCheckedDate) {
+                alarmState.hasTriggeredToday = false;
+                alarmState.lastCheckedDate = currentDate;
+                console.log('New day detected - reset alarm trigger flag');
+            }
+            
+            const alarmHour = getAlarmHour24();
+            const alarmMinute = alarmSettings.minute;
+            
+            // Check if current time matches alarm time (hours and minutes only)
+            if (currentHour === alarmHour && currentMinute === alarmMinute) {
+                // Only trigger if not already triggered today
+                if (!alarmState.hasTriggeredToday && !alarmState.isRinging) {
+                    console.log('Alarm time match! Triggering alarm...');
+                    alarmState.hasTriggeredToday = true;
+                    alarmState.isRinging = true;
+                    triggerAlarm();
+                }
+            }
+        }
+        
+        // Start alarm monitoring (check every 500ms)
+        function startAlarmMonitoring() {
+            if (alarmCheckInterval) {
+                clearInterval(alarmCheckInterval);
+            }
+            
+            // Check immediately
+            checkAlarmTime();
+            
+            // Then check every 500ms
+            alarmCheckInterval = setInterval(checkAlarmTime, 500);
+            console.log('Alarm monitoring started - checking every 500ms');
+        }
+        
+        // Stop alarm monitoring
+        function stopAlarmMonitoring() {
+            if (alarmCheckInterval) {
+                clearInterval(alarmCheckInterval);
+                alarmCheckInterval = null;
+                console.log('Alarm monitoring stopped');
+            }
+        }
+        
+        // Schedule alarm (now uses continuous monitoring)
+        function scheduleAlarm() {
+            if (!alarmSettings.enabled) {
+                stopAlarmMonitoring();
+                return;
+            }
+            
+            // Reset trigger flag when setting new alarm
+            const now = new Date();
+            const alarmHour = getAlarmHour24();
+            const alarmMinute = alarmSettings.minute;
+            
+            // If setting alarm to past time today, it will trigger tomorrow
+            if (now.getHours() > alarmHour || 
+                (now.getHours() === alarmHour && now.getMinutes() >= alarmMinute)) {
+                console.log('Alarm time is in the past today - will trigger tomorrow');
+            } else {
+                console.log('Alarm scheduled for today');
+            }
+            
+            // Start continuous monitoring
+            startAlarmMonitoring();
+        }
+
+        // Update next alarm display with countdown
+        function updateNextAlarmDisplay() {
+            if (alarmSettings.enabled) {
+                nextAlarmDisplay.style.display = 'flex';
+                
+                const now = new Date();
+                const alarmTime = new Date();
+                const alarmHour = getAlarmHour24();
+                alarmTime.setHours(alarmHour, alarmSettings.minute, 0, 0);
+                
+                // If alarm time has passed today, it's for tomorrow
+                if (alarmTime <= now) {
+                    alarmTime.setDate(alarmTime.getDate() + 1);
+                }
+                
+                const msUntilAlarm = alarmTime - now;
+                const hoursUntil = Math.floor(msUntilAlarm / (1000 * 60 * 60));
+                const minutesUntil = Math.floor((msUntilAlarm % (1000 * 60 * 60)) / (1000 * 60));
+                
+                const timeStr = `${alarmSettings.hour}:${String(alarmSettings.minute).padStart(2, '0')} ${alarmSettings.period}`;
+                
+                if (hoursUntil > 0) {
+                    nextAlarmText.textContent = `Alarm: ${timeStr} (in ${hoursUntil}h ${minutesUntil}m)`;
+                } else if (minutesUntil > 0) {
+                    nextAlarmText.textContent = `Alarm: ${timeStr} (in ${minutesUntil}m)`;
+                } else {
+                    nextAlarmText.textContent = `Alarm: ${timeStr} (soon!)`;
+                }
+            } else {
+                nextAlarmDisplay.style.display = 'none';
+            }
+        }
+        
+        // Update countdown every second
+        setInterval(() => {
+            if (alarmSettings.enabled) {
+                updateNextAlarmDisplay();
+            }
+        }, 1000);
+
+        // Web Audio API - Generate Alarm Ringtone
+        function startAlarmRingtone() {
+            if (isRingtoneRinging) return;
+            
+            // Create audio context
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            ringtoneGainNode = audioContext.createGain();
+            ringtoneGainNode.connect(audioContext.destination);
+            ringtoneGainNode.gain.value = 0.7;
+            
+            isRingtoneRinging = true;
+            
+            // Function to play a single beep
+            function playBeep() {
+                if (!isRingtoneRinging) return;
+                
+                const oscillator = audioContext.createOscillator();
+                const beepGain = audioContext.createGain();
+                
+                oscillator.connect(beepGain);
+                beepGain.connect(ringtoneGainNode);
+                
+                oscillator.frequency.value = 900; // 900 Hz
+                oscillator.type = 'sine';
+                
+                // Envelope for smoother sound
+                beepGain.gain.setValueAtTime(0, audioContext.currentTime);
+                beepGain.gain.linearRampToValueAtTime(0.7, audioContext.currentTime + 0.05);
+                beepGain.gain.linearRampToValueAtTime(0.7, audioContext.currentTime + 0.4);
+                beepGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+            
+            // Play beep pattern: 500ms beep + 500ms silence
+            playBeep();
+            ringtoneInterval = setInterval(() => {
+                playBeep();
+            }, 1000);
+        }
+        
+        function stopAlarmRingtone() {
+            isRingtoneRinging = false;
+            
+            if (ringtoneInterval) {
+                clearInterval(ringtoneInterval);
+                ringtoneInterval = null;
+            }
+            
+            if (ringtoneGainNode) {
+                ringtoneGainNode.gain.setValueAtTime(ringtoneGainNode.gain.value, audioContext.currentTime);
+                ringtoneGainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.1);
+            }
+            
+            if (audioContext) {
+                setTimeout(() => {
+                    if (audioContext && audioContext.state !== 'closed') {
+                        audioContext.close();
+                    }
+                    audioContext = null;
+                }, 200);
+            }
+        }
+        
+        // Trigger alarm
+        function triggerAlarm() {
+            console.log('Alarm triggered at', new Date().toLocaleTimeString());
+            
+            const now = new Date();
+            const hour = now.getHours();
+            let greeting = 'Good morning';
+            if (hour >= 12 && hour < 18) {
+                greeting = 'Good afternoon';
+            } else if (hour >= 18) {
+                greeting = 'Good evening';
+            }
+            
+            // Set initial ringing state
+            document.getElementById('alarmGreetingText').textContent = 'Wake Up!';
+            document.getElementById('alarmSubtext').textContent = 'Tap the button below to acknowledge your alarm.';
+            
+            // Show ringing UI
+            alarmOverlay.classList.add('active');
+            alarmOverlay.classList.add('ringing');
+            alarmContent.classList.add('ringing');
+            
+            // Show acknowledge button, hide greeting content
+            alarmActions.style.display = 'flex';
+            dismissSnoozeActions.style.display = 'none';
+            document.querySelector('.alarm-audio-player').style.display = 'none';
+            document.querySelector('.alarm-schedule-preview').style.display = 'none';
+            document.querySelector('.alarm-recommendations').style.display = 'none';
+            
+            // Start alarm ringtone
+            startAlarmRingtone();
+            
+            // Update next alarm display for tomorrow (if repeat enabled)
+            if (alarmSettings.repeat) {
+                updateNextAlarmDisplay();
+            }
+        }
+        
+        // Acknowledge alarm - stop ringtone and show greeting
+        acknowledgeAlarmButton.addEventListener('click', () => {
+            console.log('Alarm acknowledged by user');
+            
+            // Stop ringtone
+            stopAlarmRingtone();
+            alarmState.isRinging = false;
+            
+            // Remove ringing animations
+            alarmOverlay.classList.remove('ringing');
+            alarmContent.classList.remove('ringing');
+            
+            // Update to greeting state
+            const now = new Date();
+            const hour = now.getHours();
+            let greeting = 'Good morning';
+            if (hour >= 12 && hour < 18) {
+                greeting = 'Good afternoon';
+            } else if (hour >= 18) {
+                greeting = 'Good evening';
+            }
+            
+            document.getElementById('alarmGreetingText').textContent = `${greeting}!`;
+            document.getElementById('alarmSubtext').textContent = 'Your personalized balance briefing is ready.';
+            
+            // Show greeting content
+            alarmActions.style.display = 'none';
+            dismissSnoozeActions.style.display = 'flex';
+            document.querySelector('.alarm-audio-player').style.display = 'block';
+            document.querySelector('.alarm-schedule-preview').style.display = 'block';
+            document.querySelector('.alarm-recommendations').style.display = 'block';
+            
+            // Change background to calm purple
+            alarmOverlay.style.background = 'linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%)';
+            
+            // Auto-play greeting audio
+            playAlarmAudio();
+        });
+
+        // Dismiss alarm
+        dismissAlarmButton.addEventListener('click', () => {
+            console.log('Alarm dismissed');
+            stopAlarmRingtone();
+            alarmState.isRinging = false;
+            alarmOverlay.classList.remove('active');
+            alarmOverlay.classList.remove('ringing');
+            alarmContent.classList.remove('ringing');
+            stopAlarmAudio();
+            snoozeOptions.style.display = 'none';
+            
+            // Reset background
+            alarmOverlay.style.background = 'linear-gradient(135deg, #FF5252 0%, #FF9100 100%)';
+            
+            // Reset trigger flag if alarm is not set to repeat
+            if (!alarmSettings.repeat) {
+                alarmState.hasTriggeredToday = false;
+            }
+        });
+
+        // Show snooze options
+        snoozeAlarmButton.addEventListener('click', () => {
+            snoozeOptions.style.display = snoozeOptions.style.display === 'none' ? 'flex' : 'none';
+        });
+
+        // Handle snooze
+        document.querySelectorAll('.snooze-option-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const minutes = parseInt(btn.dataset.minutes);
+                snoozeAlarm(minutes);
+            });
+        });
+
+        function snoozeAlarm(minutes) {
+            console.log(`Alarm snoozed for ${minutes} minutes`);
+            stopAlarmRingtone();
+            alarmState.isRinging = false;
+            alarmOverlay.classList.remove('active');
+            alarmOverlay.classList.remove('ringing');
+            alarmContent.classList.remove('ringing');
+            stopAlarmAudio();
+            snoozeOptions.style.display = 'none';
+            
+            // Reset background
+            alarmOverlay.style.background = 'linear-gradient(135deg, #FF5252 0%, #FF9100 100%)';
+            
+            // Reset trigger flag to allow snooze alarm to ring
+            alarmState.hasTriggeredToday = false;
+            
+            // Temporarily change alarm time to snooze time
+            const snoozeTime = new Date(Date.now() + minutes * 60 * 1000);
+            const originalHour = alarmSettings.hour;
+            const originalMinute = alarmSettings.minute;
+            const originalPeriod = alarmSettings.period;
+            
+            // Set alarm to snooze time
+            const snoozeHour = snoozeTime.getHours();
+            if (snoozeHour === 0) {
+                alarmSettings.hour = 12;
+                alarmSettings.period = 'AM';
+            } else if (snoozeHour < 12) {
+                alarmSettings.hour = snoozeHour;
+                alarmSettings.period = 'AM';
+            } else if (snoozeHour === 12) {
+                alarmSettings.hour = 12;
+                alarmSettings.period = 'PM';
+            } else {
+                alarmSettings.hour = snoozeHour - 12;
+                alarmSettings.period = 'PM';
+            }
+            alarmSettings.minute = snoozeTime.getMinutes();
+            
+            // Update display
+            const timeStr = snoozeTime.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            nextAlarmText.textContent = `Snoozed until: ${timeStr}`;
+            
+            // After snooze triggers, restore original alarm time
+            setTimeout(() => {
+                alarmSettings.hour = originalHour;
+                alarmSettings.minute = originalMinute;
+                alarmSettings.period = originalPeriod;
+                updateNextAlarmDisplay();
+            }, (minutes * 60 * 1000) + 5000);
+        }
+
+        // Simplified Alarm audio player
+        function playAlarmAudio() {
+            console.log('Playing alarm briefing audio...');
+            // Simulate audio playback without UI feedback
+        }
+
+        function stopAlarmAudio() {
+            console.log('Stopping alarm audio...');
+            // No UI state to reset
+        }
+
+        alarmAudioPlay.addEventListener('click', () => {
+            playAlarmAudio();
+        });
+
+        // Initialize with default alarm (7:00 AM)
+        alarmSettings.enabled = true;
+        scheduleAlarm();
+        updateNextAlarmDisplay();
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (alarmModal.classList.contains('active')) {
+                    alarmModal.classList.remove('active');
+                }
+            }
+            
+            // Acknowledge alarm with Enter or Space
+            if (alarmOverlay.classList.contains('active') && alarmOverlay.classList.contains('ringing')) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    acknowledgeAlarmButton.click();
+                }
+            }
+        });
+        
+        // Log initial alarm state
+        console.log('Balance Alarm initialized');
+        console.log('Alarm set for:', `${alarmSettings.hour}:${String(alarmSettings.minute).padStart(2, '0')} ${alarmSettings.period}`);
+        console.log('Monitoring alarm time every 500ms...');
+        
+        // Optional: Test alarm by setting it to current time + 1 minute
+        // Uncomment the lines below to test (alarm will ring 1 minute after page load)
+        /*
+        const testTime = new Date(Date.now() + 60000); // 1 minute from now
+        const testHour = testTime.getHours();
+        if (testHour === 0) {
+            alarmSettings.hour = 12;
+            alarmSettings.period = 'AM';
+        } else if (testHour < 12) {
+            alarmSettings.hour = testHour;
+            alarmSettings.period = 'AM';
+        } else if (testHour === 12) {
+            alarmSettings.hour = 12;
+            alarmSettings.period = 'PM';
+        } else {
+            alarmSettings.hour = testHour - 12;
+            alarmSettings.period = 'PM';
+        }
+        alarmSettings.minute = testTime.getMinutes();
+        scheduleAlarm();
+        updateNextAlarmDisplay();
+        console.log('TEST MODE: Alarm will ring in 1 minute');
+        */
+    </script>
+</body>
+</html>
