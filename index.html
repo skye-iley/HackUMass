@@ -1600,6 +1600,116 @@
     </div>
 
     <script>
+        // ========================================
+        // AUDIO CONFIGURATION
+        // ========================================
+        // CHANGE THIS PATH to your audio file location
+        // Examples:
+        // - "./output.mp3" (file in same directory)
+        // - "../audio/briefing.mp3" (relative path)
+        // - "/home/user/Documents/audio.mp3" (absolute path)
+        // - "https://example.com/audio.mp3" (URL)
+        const AUDIO_FILE_PATH = "./output.mp3";
+        
+        // ========================================
+        // AUDIO PLAYER STATE MANAGEMENT
+        // ========================================
+        let audioState = {
+            audioElement: null,
+            isPlaying: false,
+            currentButton: null // Track which button is controlling audio
+        };
+        
+        // Initialize audio element
+        function initAudioElement() {
+            if (!audioState.audioElement) {
+                audioState.audioElement = new Audio(AUDIO_FILE_PATH);
+                audioState.audioElement.crossOrigin = "anonymous";
+                
+                // Event listeners for audio element
+                audioState.audioElement.addEventListener('play', () => {
+                    console.log('Audio started playing');
+                    audioState.isPlaying = true;
+                    updateButtonState(audioState.currentButton, true);
+                });
+                
+                audioState.audioElement.addEventListener('pause', () => {
+                    console.log('Audio paused');
+                    audioState.isPlaying = false;
+                    updateButtonState(audioState.currentButton, false);
+                });
+                
+                audioState.audioElement.addEventListener('ended', () => {
+                    console.log('Audio playback completed');
+                    audioState.isPlaying = false;
+                    audioState.audioElement.currentTime = 0;
+                    updateButtonState(audioState.currentButton, false);
+                });
+                
+                audioState.audioElement.addEventListener('error', (e) => {
+                    console.error('Audio loading error:', e);
+                    alert('Audio file not found at: ' + AUDIO_FILE_PATH + '\n\nPlease update the AUDIO_FILE_PATH variable in the code to point to your audio file.');
+                });
+            }
+            return audioState.audioElement;
+        }
+        
+        // Update button state (play/pause icon and text)
+        function updateButtonState(button, isPlaying) {
+            if (!button) return;
+            
+            const icon = button.querySelector('.material-icons');
+            if (icon) {
+                if (isPlaying) {
+                    icon.textContent = 'pause';
+                    button.setAttribute('aria-label', button.getAttribute('aria-label').replace('Play', 'Pause'));
+                } else {
+                    icon.textContent = 'play_arrow';
+                    button.setAttribute('aria-label', button.getAttribute('aria-label').replace('Pause', 'Play'));
+                }
+            }
+        }
+        
+        // Play audio
+        function playAudio(buttonElement) {
+            const audio = initAudioElement();
+            audioState.currentButton = buttonElement;
+            
+            audio.play().catch(err => {
+                console.error('Error playing audio:', err);
+                alert('Unable to play audio. Please check that the file exists at: ' + AUDIO_FILE_PATH);
+            });
+        }
+        
+        // Pause audio
+        function pauseAudio() {
+            if (audioState.audioElement) {
+                audioState.audioElement.pause();
+            }
+        }
+        
+        // Stop audio and reset
+        function stopAudio() {
+            if (audioState.audioElement) {
+                audioState.audioElement.pause();
+                audioState.audioElement.currentTime = 0;
+                audioState.isPlaying = false;
+                updateButtonState(audioState.currentButton, false);
+            }
+        }
+        
+        // Toggle play/pause
+        function togglePlayPause(buttonElement) {
+            const audio = initAudioElement();
+            audioState.currentButton = buttonElement;
+            
+            if (audioState.isPlaying) {
+                pauseAudio();
+            } else {
+                playAudio(buttonElement);
+            }
+        }
+        
         // Update current time
         function updateTime() {
             const now = new Date();
@@ -1691,48 +1801,16 @@
             }
         });
 
-        // Simplified Audio Player
-        let isPlaying = false;
-        let audioSimulation = null;
 
-        function playAudio() {
-            // Simulate audio playback (3 minutes)
-            console.log('Playing morning briefing audio...');
-            
-            // Stop if already playing
-            if (audioSimulation) {
-                clearTimeout(audioSimulation);
-            }
-            
-            // Reset button after simulated duration (3 minutes = 180 seconds)
-            audioSimulation = setTimeout(() => {
-                console.log('Audio playback complete');
-                audioSimulation = null;
-            }, 180000);
-        }
 
-        // Event listener for play button
-        const audioPlayer = document.getElementById('audioPlayer');
-        const playButton = document.getElementById('playButton');
-        let paused = true
-        playButton.addEventListener('click', () => {
-            if(paused){
-                audioPlayer.play();
-                paused = false;
-            }
-            else{
-                audioPlayer.pause();
-                paused = true;
-            }
-            
+        // Event listener for main dashboard play button
+        document.getElementById('playButton').addEventListener('click', function() {
+            togglePlayPause(this);
         });
-        
-
-    
 
         // FAB play button
-        document.getElementById('fabPlay').addEventListener('click', () => {
-            playAudio();
+        document.getElementById('fabPlay').addEventListener('click', function() {
+            togglePlayPause(this);
         });
 
         // Add staggered animation delay to cards
@@ -2151,10 +2229,16 @@
             // Change background to calm purple
             alarmOverlay.style.background = 'linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%)';
             
-            // Auto-play greeting audio
-            audioPlayer.play();
-            paused = false;
-            playAlarmAudio();
+            // Auto-play greeting audio and set button to pause state
+            const alarmPlayBtn = document.getElementById('alarmAudioPlay');
+            const alarmPlayIcon = alarmPlayBtn.querySelector('.material-icons');
+            
+            // Set button to pause state immediately
+            alarmPlayIcon.textContent = 'pause';
+            alarmPlayBtn.setAttribute('aria-label', 'Pause daily briefing audio');
+            
+            // Auto-play the audio
+            playAudio(alarmPlayBtn);
         });
 
         // Dismiss alarm
@@ -2165,7 +2249,7 @@
             alarmOverlay.classList.remove('active');
             alarmOverlay.classList.remove('ringing');
             alarmContent.classList.remove('ringing');
-            stopAlarmAudio();
+            stopAudio(); // Stop audio playback
             snoozeOptions.style.display = 'none';
             
             // Reset background
@@ -2197,7 +2281,7 @@
             alarmOverlay.classList.remove('active');
             alarmOverlay.classList.remove('ringing');
             alarmContent.classList.remove('ringing');
-            stopAlarmAudio();
+            stopAudio(); // Stop audio playback
             snoozeOptions.style.display = 'none';
             
             // Reset background
@@ -2246,19 +2330,9 @@
             }, (minutes * 60 * 1000) + 5000);
         }
 
-        // Simplified Alarm audio player
-        function playAlarmAudio() {
-            console.log('Playing alarm briefing audio...');
-            // Simulate audio playback without UI feedback
-        }
-
-        function stopAlarmAudio() {
-            console.log('Stopping alarm audio...');
-            // No UI state to reset
-        }
-
-        alarmAudioPlay.addEventListener('click', () => {
-            playAlarmAudio();
+        // Alarm audio play button event listener
+        alarmAudioPlay.addEventListener('click', function() {
+            togglePlayPause(this);
         });
 
         // Initialize with default alarm (7:00 AM)
