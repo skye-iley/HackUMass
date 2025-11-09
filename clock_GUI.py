@@ -6,12 +6,8 @@ import time
 def play_mp3(file_path):
     pygame.mixer.music.load(file_path)
     pygame.mixer.music.play()
-    # Keep the program running until the music finishes
-    """
-    while pygame.mixer.music.get_busy():
-        time.sleep(1)
-    """
-    # Replace 'your_song.mp3' with the actual path to your MP3 file
+    
+    
 
 async def view_clock(queue):
     pygame.init()
