@@ -1188,6 +1188,7 @@
             <div style="display: flex; justify-content: center; align-items: center; padding: 24px 0;">
                 <button class="play-fab" id="playButton" aria-label="Play morning briefing audio">
                     <span class="material-icons">play_arrow</span>
+                    <audio id="audioPlayer" src="output.MP3"></audio>
                 </button>
             </div>
         </div>
@@ -1711,9 +1712,23 @@
         }
 
         // Event listener for play button
-        document.getElementById('playButton').addEventListener('click', () => {
-            playAudio();
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playButton = document.getElementById('playButton');
+        let paused = true
+        playButton.addEventListener('click', () => {
+            if(paused){
+                audioPlayer.play();
+                paused = false;
+            }
+            else{
+                audioPlayer.pause();
+                paused = true;
+            }
+            
         });
+        
+
+    
 
         // FAB play button
         document.getElementById('fabPlay').addEventListener('click', () => {
@@ -2093,6 +2108,8 @@
             // Start alarm ringtone
             startAlarmRingtone();
             
+            
+            
             // Update next alarm display for tomorrow (if repeat enabled)
             if (alarmSettings.repeat) {
                 updateNextAlarmDisplay();
@@ -2135,6 +2152,8 @@
             alarmOverlay.style.background = 'linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%)';
             
             // Auto-play greeting audio
+            audioPlayer.play();
+            paused = false;
             playAlarmAudio();
         });
 
