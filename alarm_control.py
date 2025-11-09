@@ -8,6 +8,8 @@ from fetch_calendar import auth_fetch
 from gemini import analyze_calendar_data, call_gemini_api
 from dotenv import load_dotenv
 from speech import text_to_speech_save_file
+from clock_GUI import view_clock
+
 import pygame
 
 load_dotenv()
@@ -20,7 +22,7 @@ def wait_till_time(target):
         print(".")
         time.sleep(1)
 
-def get_gemini_recommendations():
+async def get_gemini_recommendations():
     """
     Main function to run the analysis and print the plan.
     """
@@ -44,7 +46,8 @@ def get_gemini_recommendations():
     
     # Run the async function
     try:
-        text, sources = asyncio.run(call_gemini_api(analysis, LOCATION, api_key))
+        text, sources = await call_gemini_api(analysis, LOCATION, api_key)
+        #text, sources = asyncio.run(call_gemini_api(analysis, LOCATION, api_key))
     except Exception as e:
         print(f"Error running asyncio task: {e}")
         return
@@ -84,12 +87,19 @@ def play_mp3(file_path):
         time.sleep(1)
 
     # Replace 'your_song.mp3' with the actual path to your MP3 file
-    
 
-if __name__ == "__main__":
+async def do_others():
     target_time = datetime.datetime.now(tz=TIMEZONE)+datetime.timedelta(seconds=30)
-    text = get_gemini_recommendations()
+    text = await get_gemini_recommendations()
     text_to_speech_save_file(text)
     wait_till_time(target_time)
     ## takes about 5 seconds to run
     play_mp3('output.mp3')
+
+async def main():
+    await asyncio.gather(view_clock(),do_others())
+    
+
+if __name__ == "__main__":
+    asyncio.run(main())
+    

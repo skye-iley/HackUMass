@@ -1,0 +1,79 @@
+import datetime
+import pygame
+import asyncio
+
+async def view_clock():
+    pygame.init()
+
+
+    white = (255, 255, 255)
+    green = (0, 255, 0)
+    blue = (0, 0, 255)
+    red = (255,0,0)
+
+    # assigning values to X and Y variable
+    X = 800
+    Y = 400
+
+    # create the display surface object
+    # of specific dimension..e(X, Y).
+    display_surface = pygame.display.set_mode((X, Y))
+
+    # set the pygame window name
+    pygame.display.set_caption('Clock')
+
+    # create a font object.
+    # 1st parameter is the font file
+    # which is present in pygame.
+    # 2nd parameter is size of the font
+    font = pygame.font.Font('freesansbold.ttf', 32)
+
+    # create a text surface object,
+    # on which text is drawn on it.
+    text = font.render(datetime.datetime.now().isoformat(), True, green, blue)
+
+    # create a rectangular object for the
+    # text surface object
+    textRect = text.get_rect()
+    print
+
+    # set the center of the rectangular object.
+    textRect.center = (X // 2, Y // 2)
+    clock = pygame.time.Clock()
+    # infinite loop
+    while True:
+
+        # completely fill the surface object
+        # with white color
+        display_surface.fill(white)
+
+        # copying the text surface object
+        # to the display surface object
+        # at the center coordinate.
+        text = font.render(datetime.datetime.now().isoformat()[11:19], True, green, blue)
+        display_surface.blit(text, textRect)
+
+        # iterate over the list of Event objects
+        # that was returned by pygame.event.get() method.
+        for event in pygame.event.get():
+
+            # if event object type is QUIT
+            # then quitting the pygame
+            # and program both.
+            if event.type == pygame.QUIT:
+
+                # deactivates the pygame library
+                pygame.quit()
+                return None
+                # quit the program.
+                #quit()
+
+        # Draws the surface object to the screen.
+        pygame.display.update()
+
+        await asyncio.sleep(0)
+        clock.tick(60)
+
+
+if __name__ == "__main__":
+    view_clock()
