@@ -78,26 +78,28 @@ async def get_gemini_recommendations():
 
 
 
-def play_mp3(file_path):
-    pygame.mixer.init()
-    pygame.mixer.music.load(file_path)
-    pygame.mixer.music.play()
-    # Keep the program running until the music finishes
-    while pygame.mixer.music.get_busy():
-        time.sleep(1)
 
-    # Replace 'your_song.mp3' with the actual path to your MP3 file
 
-async def do_others():
-    target_time = datetime.datetime.now(tz=TIMEZONE)+datetime.timedelta(seconds=30)
+async def send_mp3_event(queue):
+    message = "ALARM TIME"
+    await queue.put(message)
+
+async def do_others(queue):
+    target_time = datetime.datetime.now(tz=TIMEZONE)+datetime.timedelta(seconds=20)
     text = await get_gemini_recommendations()
     text_to_speech_save_file(text)
     wait_till_time(target_time)
     ## takes about 5 seconds to run
-    play_mp3('output.mp3')
+    await send_mp3_event(queue)
+    #play_mp3('output.mp3')
 
 async def main():
-    await asyncio.gather(view_clock(),do_others())
+    queue = asyncio.Queue()
+    clock_task = asyncio.create_task(view_clock(queue))
+    do_other_task = asyncio.create_task(do_others(queue))
+    await clock_task
+    await do_other_task
+    #await asyncio.gather(view_clock(),do_others())
     
 
 if __name__ == "__main__":
