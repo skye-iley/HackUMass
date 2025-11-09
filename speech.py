@@ -13,8 +13,11 @@ def text_to_speech_save_file(text, filename="output.mp3"):
         model_id="eleven_multilingual_v2",
         output_format="mp3_44100_128"
     )
-    audio_bytes = b"".join(audio)  # Join generator chunks into bytes
-
+    try:
+        audio_bytes = b"".join(audio)  # Join generator chunks into bytes
+    except:
+        print("out of tokens")
+        return None
     with open(filename, "wb") as f:
         f.write(audio_bytes)
     print(f"Audio saved to {filename}")
